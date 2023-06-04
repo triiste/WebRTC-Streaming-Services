@@ -24,7 +24,8 @@ int main(int argc,char* argv[]){
 
 
     char in_buff[MESSAGE_LEN] = {0,};
-    //    int socket(int domain, int type, int protocol);   socket()函数的原型，这个函数j
+    //    int socket(int domain, int type, int protocol);   socket()函数的原型，这个函数
+    // 第一步 创建客户端的socket
     socket_fd = socket(AF_INET,SOCK_STREAM,0); //创建socket  FP_INET是 IPv4互联网协议族 SOCK_STREAM是面向连接的套接字  第三个参数传0
     if(socket_fd == -1){    //返回文件描述符 失败时返回-1
         std::cout<<"Failed to create socket!"<<std::endl;
@@ -40,16 +41,18 @@ int main(int argc,char* argv[]){
     if(ret == -1){
         std::cout<<"Failed to set socket options!"<<std::endl;
     }
-    localaddr.sin_family = AF_INET;
-    localaddr.sin_port = PORT;
-    localaddr.sin_addr.s_addr = INADDR_ANY;
+    localaddr.sin_family = AF_INET;//IPV4标准
+    localaddr.sin_port = PORT;//宏定义 8111 
+    localaddr.sin_addr.s_addr = INADDR_ANY;//任何地址
     bzero(&(localaddr.sin_zero),8);
+    //第2步：把服务端用于通信的地址和端口绑定到socket上
     ret = bind(socket_fd,(struct sockaddr *)&localaddr,sizeof(struct sockaddr));
     if(ret == -1){
         std::cout<<"Failed to bind addr!"<<std::endl;
         exit(-1);
     }
-    ret = listen(socket_fd,backlog);
+    //第3步 把socket设置为监听模式(主动模式和被动模式) 服务端是被连接的 需要设置成监听模式
+    ret = listen(socket_fd,backlog);//成功返回0 失败返回-1
     if(ret == -1){
         std::cout<<"Failed to listen socket!"<<std::endl;
         exit(-1);
@@ -84,6 +87,7 @@ int main(int argc,char* argv[]){
                 }
 
                 socklen_t addr_len = sizeof(struct sockaddr);
+                //第4步 调用accept 接受客户端的连接
                 accept_fd  = accept(socket_fd,
                         (struct sockaddr *) &remoteaddr,
                         &addr_len);
